@@ -1,0 +1,60 @@
+classDiagram
+    class Transaction {
+        +str sender
+        +str receiver
+        +float amount
+        +float timestamp
+        +str signature
+        +to_dict() Dict
+        +from_dict(data) Transaction
+    }
+    
+    class Block {
+        +int index
+        +float timestamp
+        +List~Transaction~ transactions
+        +str previous_hash
+        +int nonce
+        +str hash
+        +calculate_hash() str
+        +mine_block(difficulty) Block
+        +to_dict() Dict
+        +from_dict(data) Block
+    }
+    
+    class Blockchain {
+        +str node_id
+        +int difficulty
+        +List~Block~ chain
+        +List~Transaction~ transaction_pool
+        +create_genesis_block() void
+        +get_latest_block() Block
+        +add_transaction(transaction) bool
+        +create_candidate_block() Block
+        +mine_candidate_block(block) Block
+        +add_block(block) bool
+        +validate_chain() bool
+    }
+    
+    class ClassicalConsensusNode {
+        +str node_id
+        +Blockchain blockchain
+        +Block candidate_block
+        +bool mining_complete
+        +create_candidate_block() Block
+        +mine_block() Block
+        +update_blockchain(block) bool
+    }
+    
+    class ClassicalConsensusProtocol {
+        +int num_nodes
+        +int difficulty
+        +List~ClassicalConsensusNode~ nodes
+        +add_transactions(num_transactions) void
+        +run_consensus_round() Tuple~str,Block~
+    }
+    
+    Blockchain *-- Block : contains
+    Block *-- Transaction : contains
+    ClassicalConsensusNode *-- Blockchain : has
+    ClassicalConsensusProtocol *-- ClassicalConsensusNode : manages

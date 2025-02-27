@@ -1,0 +1,92 @@
+classDiagram
+    class Transaction {
+        +str sender
+        +str receiver
+        +float amount
+        +float timestamp
+        +str signature
+        +to_dict() Dict
+        +from_dict(data) Transaction
+    }
+    
+    class Block {
+        +int index
+        +float timestamp
+        +List~Transaction~ transactions
+        +str previous_hash
+        +List~int~ random_numbers
+        +str hash
+        +calculate_hash() str
+        +finalize() Block
+        +to_dict() Dict
+        +from_dict(data) Block
+    }
+    
+    class Blockchain {
+        +str node_id
+        +List~Block~ chain
+        +List~Transaction~ transaction_pool
+        +create_genesis_block() void
+        +get_latest_block() Block
+        +add_transaction(transaction) bool
+        +create_candidate_block(random_numbers) Block
+        +add_block(block) bool
+        +validate_chain() bool
+    }
+    
+    class QuantumRandomNumberGenerator {
+        +int num_nodes
+        +str simulator
+        +generate_random_numbers(num_bits) List~int~
+    }
+    
+    class QuantumHashFunction {
+        +str simulator
+        +block_to_quantum_state(block) Tuple~float,float~
+        +prepare_quantum_state(theta, phi) Statevector
+    }
+    
+    class QuantumTeleportation {
+        +str simulator
+        +generate_bell_pair() Tuple~Statevector,int,int~
+        +teleport_state(state_to_teleport) Tuple~Statevector,List~int~~
+    }
+    
+    class FidelityChecker {
+        +compute_fidelity(state1, state2) float
+        +compute_fidelity_from_angles(theta1, phi1, theta2, phi2) float
+    }
+    
+    class QuantumConsensusNode {
+        +str node_id
+        +int num_nodes
+        +Blockchain blockchain
+        +Block candidate_block
+        +Tuple~float,float~ quantum_state
+        +Dict~str,Tuple~float,float~~ received_states
+        +Dict~Tuple~str,str~,float~ fidelity_matrix
+        +generate_random_numbers() List~int~
+        +create_candidate_block() Block
+        +prepare_quantum_state() Tuple~float,float~
+        +share_quantum_state(other_nodes) void
+        +receive_quantum_state(sender_id, state) void
+        +compute_fidelities() Dict~Tuple~str,str~,float~
+        +select_winner(all_fidelities) Tuple~str,str~
+        +update_blockchain(winning_node_id, winning_block) bool
+    }
+    
+    class QuantumConsensusProtocol {
+        +int num_nodes
+        +List~QuantumConsensusNode~ nodes
+        +add_transactions(num_transactions) void
+        +run_consensus_round() Tuple~str,Block~
+    }
+    
+    Blockchain *-- Block : contains
+    Block *-- Transaction : contains
+    QuantumConsensusNode *-- Blockchain : has
+    QuantumConsensusNode *-- QuantumRandomNumberGenerator : uses
+    QuantumConsensusNode *-- QuantumHashFunction : uses
+    QuantumConsensusNode *-- QuantumTeleportation : uses
+    QuantumConsensusNode *-- FidelityChecker : uses
+    QuantumConsensusProtocol *-- QuantumConsensusNode : manages

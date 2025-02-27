@@ -1,0 +1,75 @@
+sequenceDiagram
+    participant P as QuantumConsensusProtocol
+    participant N1 as Node 1
+    participant N2 as Node 2
+    participant N3 as Node n
+    
+    Note over P: Initialize with n nodes
+    
+    P->>P: add_transactions(num_transactions)
+    
+    Note over P,N3: Consensus Round Begins
+    
+    P->>+N1: generate_random_numbers()
+    P->>+N2: generate_random_numbers()
+    P->>+N3: generate_random_numbers()
+    
+    N1-->>-P: random numbers
+    N2-->>-P: random numbers
+    N3-->>-P: random numbers
+    
+    P->>+N1: create_candidate_block()
+    P->>+N2: create_candidate_block()
+    P->>+N3: create_candidate_block()
+    
+    N1-->>-P: candidate block
+    N2-->>-P: candidate block
+    N3-->>-P: candidate block
+    
+    P->>+N1: prepare_quantum_state()
+    P->>+N2: prepare_quantum_state()
+    P->>+N3: prepare_quantum_state()
+    
+    N1-->>-P: quantum state (θ1,φ1)
+    N2-->>-P: quantum state (θ2,φ2)
+    N3-->>-P: quantum state (θn,φn)
+    
+    P->>+N1: share_quantum_state(all_nodes)
+    N1->>N2: receive_quantum_state(N1_id, state1)
+    N1->>N3: receive_quantum_state(N1_id, state1)
+    N1-->>-P: shared state
+    
+    P->>+N2: share_quantum_state(all_nodes)
+    N2->>N1: receive_quantum_state(N2_id, state2)
+    N2->>N3: receive_quantum_state(N2_id, state2)
+    N2-->>-P: shared state
+    
+    P->>+N3: share_quantum_state(all_nodes)
+    N3->>N1: receive_quantum_state(N3_id, state3)
+    N3->>N2: receive_quantum_state(N3_id, state3)
+    N3-->>-P: shared state
+    
+    P->>+N1: compute_fidelities()
+    P->>+N2: compute_fidelities()
+    P->>+N3: compute_fidelities()
+    
+    N1-->>-P: fidelity matrix
+    N2-->>-P: fidelity matrix
+    N3-->>-P: fidelity matrix
+    
+    P->>P: Combine all fidelities
+    
+    P->>+N1: select_winner(all_fidelities)
+    N1-->>-P: winning pair (node_i, node_j)
+    
+    Note over P: Determine winner_id and winner_block
+    
+    P->>+N1: update_blockchain(winner_id, winner_block)
+    P->>+N2: update_blockchain(winner_id, winner_block)
+    P->>+N3: update_blockchain(winner_id, winner_block)
+    
+    N1-->>-P: update complete
+    N2-->>-P: update complete
+    N3-->>-P: update complete
+    
+    Note over P,N3: Consensus Round Complete
