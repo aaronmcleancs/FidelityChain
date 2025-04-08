@@ -1,75 +1,63 @@
 sequenceDiagram
-    participant P as QuantumConsensusProtocol
-    participant N1 as Node 1
-    participant N2 as Node 2
-    participant N3 as Node n
+    participant Network as Network
+    participant Node0 as Node 0
+    participant Node1 as Node 1
+    participant Noden as Node n
     
-    Note over P: Initialize with n nodes
+    Note over Network: Initialize with n nodes sharing the same blockchain
     
-    P->>P: add_transactions(num_transactions)
+    Network->>Network: generate_random_transactions(count)
     
-    Note over P,N3: Consensus Round Begins
+    Note over Network,Noden: Consensus Round Begins
     
-    P->>+N1: generate_random_numbers()
-    P->>+N2: generate_random_numbers()
-    P->>+N3: generate_random_numbers()
+    %% Block Creation Phase
+    Network->>+Node0: create_candidate_block()
+    Network->>+Node1: create_candidate_block()
+    Network->>+Noden: create_candidate_block()
     
-    N1-->>-P: random numbers
-    N2-->>-P: random numbers
-    N3-->>-P: random numbers
+    Note over Node0: Generate quantum nonce using<br/>generate_verifiable_nonce()
+    Note over Node1: Generate quantum nonce using<br/>generate_verifiable_nonce()
+    Note over Noden: Generate quantum nonce using<br/>generate_verifiable_nonce()
     
-    P->>+N1: create_candidate_block()
-    P->>+N2: create_candidate_block()
-    P->>+N3: create_candidate_block()
+    Node0-->>-Network: candidate block
+    Node1-->>-Network: candidate block
+    Noden-->>-Network: candidate block
     
-    N1-->>-P: candidate block
-    N2-->>-P: candidate block
-    N3-->>-P: candidate block
+    %% Quantum State Preparation Phase
+    Network->>+Node0: prepare_quantum_state()
+    Network->>+Node1: prepare_quantum_state()
+    Network->>+Noden: prepare_quantum_state()
     
-    P->>+N1: prepare_quantum_state()
-    P->>+N2: prepare_quantum_state()
-    P->>+N3: prepare_quantum_state()
+    Note over Node0: Create statevector using<br/>create_block_quantum_state()
+    Note over Node1: Create statevector using<br/>create_block_quantum_state()
+    Note over Noden: Create statevector using<br/>create_block_quantum_state()
     
-    N1-->>-P: quantum state (θ1,φ1)
-    N2-->>-P: quantum state (θ2,φ2)
-    N3-->>-P: quantum state (θn,φn)
+    Node0-->>-Network: quantum statevector 0
+    Node1-->>-Network: quantum statevector 1
+    Noden-->>-Network: quantum statevector n
     
-    P->>+N1: share_quantum_state(all_nodes)
-    N1->>N2: receive_quantum_state(N1_id, state1)
-    N1->>N3: receive_quantum_state(N1_id, state1)
-    N1-->>-P: shared state
+    %% Consensus Phase
+    Network->>+Node0: perform_consensus_round(all_states)
     
-    P->>+N2: share_quantum_state(all_nodes)
-    N2->>N1: receive_quantum_state(N2_id, state2)
-    N2->>N3: receive_quantum_state(N2_id, state2)
-    N2-->>-P: shared state
+    Note over Node0: Calculate fidelities between all states<br/>using calculate_fidelity()
+    Note over Node0: Determine agreement sets based on<br/>fidelity threshold
+    Note over Node0: Select winner based on agreement set size
     
-    P->>+N3: share_quantum_state(all_nodes)
-    N3->>N1: receive_quantum_state(N3_id, state3)
-    N3->>N2: receive_quantum_state(N3_id, state3)
-    N3-->>-P: shared state
+    Node0-->>-Network: winner_node_id
     
-    P->>+N1: compute_fidelities()
-    P->>+N2: compute_fidelities()
-    P->>+N3: compute_fidelities()
+    %% Block Distribution Phase
+    Note over Network: Get winning block from winner node
     
-    N1-->>-P: fidelity matrix
-    N2-->>-P: fidelity matrix
-    N3-->>-P: fidelity matrix
+    Network->>Network: Add winning block to network blockchain
     
-    P->>P: Combine all fidelities
+    Network->>+Node0: receive_block(winning_block)
+    Network->>+Node1: receive_block(winning_block)
+    Network->>+Noden: receive_block(winning_block)
     
-    P->>+N1: select_winner(all_fidelities)
-    N1-->>-P: winning pair (node_i, node_j)
+    Node0-->>-Network: update success
+    Node1-->>-Network: update success
+    Noden-->>-Network: update success
     
-    Note over P: Determine winner_id and winner_block
+    Note over Network: Verify blockchain consistency across nodes
     
-    P->>+N1: update_blockchain(winner_id, winner_block)
-    P->>+N2: update_blockchain(winner_id, winner_block)
-    P->>+N3: update_blockchain(winner_id, winner_block)
-    
-    N1-->>-P: update complete
-    N2-->>-P: update complete
-    N3-->>-P: update complete
-    
-    Note over P,N3: Consensus Round Complete
+    Note over Network,Noden: Consensus Round Complete

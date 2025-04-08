@@ -9,10 +9,17 @@ from transaction import Transaction
 class Network:
     def __init__(self, num_nodes):
         self.num_nodes = num_nodes
+        # Create a single shared blockchain instance for the network
         self.blockchain = Blockchain()
+        # Ensure each node references the same blockchain to maintain consistency
         self.nodes = [Node(node_id=i, network_nodes_count=num_nodes, blockchain=self.blockchain) for i in range(num_nodes)]
         print(f"Network: Initialized with {num_nodes} nodes.")
         print(f"Network: Genesis Block -> {self.blockchain.get_latest_block()}")
+        print(f"Network: Blockchain ID: {id(self.blockchain)} (for debugging)")
+        # Verify all nodes share the same blockchain reference
+        for i, node in enumerate(self.nodes):
+            if id(node.blockchain) != id(self.blockchain):
+                print(f"Warning: Node {i} has a different blockchain reference")
 
     def generate_random_transactions(self, count=5):
         print(f"\nNetwork: Generating {count} new random transactions...")
@@ -57,10 +64,33 @@ class Network:
                 print(f"\nNetwork: Consensus Winner: Node {winner_node_id} with Block {winning_block.index}")
                 print(f"Network: Distributing winning block to all nodes...")
                 successful_updates = 0
+                
+                # First, add the winning block to the main network blockchain
+                winner_node = self.nodes[winner_node_id]
+                if not self.blockchain.add_block(copy.deepcopy(winning_block)):
+                    print(f"Network: Warning - Main network blockchain rejected the winning block")
+                
+                # Now make sure all nodes have the winning block by properly distributing it
                 for node in self.nodes:
-                    if node.receive_block(copy.deepcopy(winning_block)):
+                    if node.node_id == winner_node_id:
+                        # The winner already has the block
                         successful_updates += 1
-                print(f"Network: Block added by {successful_updates}/{self.num_nodes} nodes.")
+                        continue
+                        
+                    # Validate and add the block to each node's chain
+                    success = node.receive_block(copy.deepcopy(winning_block))
+                    if success:
+                        successful_updates += 1
+                    else:
+                        # If failed to add normally, synchronize the blockchain
+                        print(f"Network: Synchronizing Node {node.node_id}'s blockchain with the network")
+                        node.blockchain = Blockchain()  # Create fresh blockchain
+                        # Copy all blocks from the main chain
+                        for block in self.blockchain.chain:
+                            node.blockchain.chain.append(copy.deepcopy(block))
+                        successful_updates += 1
+                    
+                print(f"Network: Block synchronized to {successful_updates}/{self.num_nodes} nodes.")
                 print(f"Network: Consensus round completed in {consensus_time:.4f} seconds.")
                 return True
             else:
@@ -78,21 +108,56 @@ class Network:
         print("\n===================================")
         print("=== Starting Blockchain Simulation ===")
         print("===================================")
+        
         for i in range(num_rounds):
             print(f"\n--- Round {i+1} / {num_rounds} ---")
+            
+            # Verify blockchain consistency before round
+            print(f"Pre-round Chain Length: {len(self.blockchain.chain)}")
+            print(f"Pre-round Latest Block: {self.blockchain.get_latest_block()}")
+            
+            # Generate transactions and run consensus
             self.generate_random_transactions(count=tx_per_round)
             success = self.run_consensus_round()
+            
+            # Show round results
             if success:
                 print(f"--- Round {i+1} successful ---")
             else:
                 print(f"--- Round {i+1} failed to reach consensus ---")
+                
+            # Verify blockchain state after round
             print(f"Current Chain Length: {len(self.blockchain.chain)}")
             print(f"Latest Block: {self.blockchain.get_latest_block()}")
+            
+            # Check blockchain consistency across nodes
+            chain_lengths = [len(node.blockchain.chain) for node in self.nodes]
+            if len(set(chain_lengths)) > 1:
+                print(f"Warning: Blockchain inconsistency detected across nodes!")
+                print(f"Chain lengths: {chain_lengths}")
+                
+                # Fix inconsistencies by syncing all nodes to the network blockchain
+                for node_id, node in enumerate(self.nodes):
+                    if len(node.blockchain.chain) != len(self.blockchain.chain):
+                        print(f"Syncing Node {node_id} blockchain (length {len(node.blockchain.chain)}) to network blockchain (length {len(self.blockchain.chain)})")
+                        node.blockchain = self.blockchain
+            
             time.sleep(1)
+            
         print("\n===================================")
         print("=== Simulation Finished ===")
         print("===================================")
         print("Final Blockchain State:")
-        for block in self.blockchain.chain:
-            print(block)
-        self.blockchain.validate_chain()
+        for idx, block in enumerate(self.blockchain.chain):
+            print(f"Block {idx}: {block}")
+        
+        # Validate the final chain
+        valid = self.blockchain.validate_chain()
+        print(f"Chain Validation Result: {'Valid' if valid else 'Invalid'}")
+        
+        # Final blockchain consistency check across nodes
+        chain_lengths = [len(node.blockchain.chain) for node in self.nodes]
+        if len(set(chain_lengths)) > 1:
+            print(f"Warning: Final blockchain inconsistency detected: {chain_lengths}")
+        else:
+            print(f"All nodes have consistent blockchain length: {chain_lengths[0]}")

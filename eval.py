@@ -197,5 +197,3 @@ results['scaling']['quantum_tps_rel'] = [tps / base_results['quantum_tps'] for t
 results['scaling']['pow_tps_rel'] = [tps / base_results['pow_tps'] for tps in results['scaling']['pow_tps']]
 results['scaling']['quantum_energy_rel'] = [base_results['quantum_energy'] / t if t > 0 else 0 for t in results['scaling']['quantum_energy']]
 results['scaling']['pow_energy_rel'] = [base_results['pow_energy'] / t if t > 0 else 0 for t in results['scaling']['pow_energy']]
-
-# Let me know if you want the plotting section and results printing cleaned up the same way!

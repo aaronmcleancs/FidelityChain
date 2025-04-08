@@ -1,60 +1,71 @@
 classDiagram
+    %% This diagram represents a traditional classical blockchain 
+    %% for comparison to the quantum-assisted implementation
+    
     class Transaction {
+        +str id
         +str sender
         +str receiver
         +float amount
         +float timestamp
-        +str signature
         +to_dict() Dict
-        +from_dict(data) Transaction
+        +__str__() str
     }
     
     class Block {
         +int index
-        +float timestamp
         +List~Transaction~ transactions
+        +float timestamp
         +str previous_hash
+        +int creator_id
         +int nonce
         +str hash
         +calculate_hash() str
-        +mine_block(difficulty) Block
         +to_dict() Dict
-        +from_dict(data) Block
+        +__str__() str
     }
     
     class Blockchain {
-        +str node_id
-        +int difficulty
         +List~Block~ chain
-        +List~Transaction~ transaction_pool
-        +create_genesis_block() void
+        +List~Transaction~ pending_transactions
+        +create_genesis_block() Block
         +get_latest_block() Block
         +add_transaction(transaction) bool
-        +create_candidate_block() Block
-        +mine_candidate_block(block) Block
         +add_block(block) bool
         +validate_chain() bool
+        +get_pending_transactions(max_tx) List~Transaction~
     }
     
-    class ClassicalConsensusNode {
-        +str node_id
+    class ClassicalNode {
+        +int node_id
         +Blockchain blockchain
-        +Block candidate_block
-        +bool mining_complete
+        +Block current_candidate_block
         +create_candidate_block() Block
-        +mine_block() Block
-        +update_blockchain(block) bool
+        +mine_block(difficulty) bool
+        +receive_block(block) bool
     }
     
-    class ClassicalConsensusProtocol {
+    class ClassicalNetwork {
         +int num_nodes
+        +Blockchain blockchain
+        +List~ClassicalNode~ nodes
         +int difficulty
-        +List~ClassicalConsensusNode~ nodes
-        +add_transactions(num_transactions) void
-        +run_consensus_round() Tuple~str,Block~
+        +generate_random_transactions(count) void
+        +run_consensus_round() bool
+        +run_simulation(num_rounds, tx_per_round) void
     }
     
+    %% Traditional PoW mining functionality
+    class ProofOfWork {
+        <<module>>
+        +mine_block(block, difficulty) bool
+        +validate_pow(block, difficulty) bool
+    }
+    
+    %% Relationships
     Blockchain *-- Block : contains
     Block *-- Transaction : contains
-    ClassicalConsensusNode *-- Blockchain : has
-    ClassicalConsensusProtocol *-- ClassicalConsensusNode : manages
+    ClassicalNode -- Blockchain : references
+    ClassicalNetwork -- ClassicalNode : manages
+    ClassicalNetwork -- Blockchain : manages
+    ClassicalNode ..> ProofOfWork : uses

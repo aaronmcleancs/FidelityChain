@@ -1,92 +1,81 @@
 classDiagram
     class Transaction {
+        +str id
         +str sender
         +str receiver
         +float amount
         +float timestamp
-        +str signature
         +to_dict() Dict
-        +from_dict(data) Transaction
+        +__str__() str
     }
     
     class Block {
         +int index
-        +float timestamp
         +List~Transaction~ transactions
+        +float timestamp
         +str previous_hash
-        +List~int~ random_numbers
+        +int creator_id
+        +int nonce
         +str hash
+        +Statevector quantum_state
+        +Dict quantum_params
+        +_load_transactions(transactions_data) List~Transaction~
         +calculate_hash() str
-        +finalize() Block
-        +to_dict() Dict
-        +from_dict(data) Block
+        +extract_quantum_parameters() Dict
+        +to_dict(include_hash, include_state) Dict
+        +__str__() str
     }
     
     class Blockchain {
-        +str node_id
         +List~Block~ chain
-        +List~Transaction~ transaction_pool
-        +create_genesis_block() void
+        +List~Transaction~ pending_transactions
+        +create_genesis_block() Block
         +get_latest_block() Block
         +add_transaction(transaction) bool
-        +create_candidate_block(random_numbers) Block
         +add_block(block) bool
         +validate_chain() bool
+        +get_pending_transactions(max_tx) List~Transaction~
     }
     
-    class QuantumRandomNumberGenerator {
-        +int num_nodes
-        +str simulator
-        +generate_random_numbers(num_bits) List~int~
+    class Node {
+        +int node_id
+        +int network_nodes_count
+        +Blockchain blockchain
+        +Block current_candidate_block
+        +Statevector quantum_state
+        +create_candidate_block() Block
+        +prepare_quantum_state() Statevector
+        +perform_consensus_round(all_states) int
+        +receive_block(block) bool
     }
     
-    class QuantumHashFunction {
-        +str simulator
-        +block_to_quantum_state(block) Tuple~float,float~
-        +prepare_quantum_state(theta, phi) Statevector
-    }
-    
-    class QuantumTeleportation {
-        +str simulator
-        +generate_bell_pair() Tuple~Statevector,int,int~
-        +teleport_state(state_to_teleport) Tuple~Statevector,List~int~~
-    }
-    
-    class FidelityChecker {
-        +compute_fidelity(state1, state2) float
-        +compute_fidelity_from_angles(theta1, phi1, theta2, phi2) float
-    }
-    
-    class QuantumConsensusNode {
-        +str node_id
+    class Network {
         +int num_nodes
         +Blockchain blockchain
-        +Block candidate_block
-        +Tuple~float,float~ quantum_state
-        +Dict~str,Tuple~float,float~~ received_states
-        +Dict~Tuple~str,str~,float~ fidelity_matrix
-        +generate_random_numbers() List~int~
-        +create_candidate_block() Block
-        +prepare_quantum_state() Tuple~float,float~
-        +share_quantum_state(other_nodes) void
-        +receive_quantum_state(sender_id, state) void
-        +compute_fidelities() Dict~Tuple~str,str~,float~
-        +select_winner(all_fidelities) Tuple~str,str~
-        +update_blockchain(winning_node_id, winning_block) bool
+        +List~Node~ nodes
+        +generate_random_transactions(count) void
+        +run_consensus_round() bool
+        +run_simulation(num_rounds, tx_per_round) void
     }
     
-    class QuantumConsensusProtocol {
-        +int num_nodes
-        +List~QuantumConsensusNode~ nodes
-        +add_transactions(num_transactions) void
-        +run_consensus_round() Tuple~str,Block~
+    %% Quantum Utilities
+    class QuantumUtils {
+        <<module>>
+        +AerSimulator SIMULATOR
+        +int NUM_QUBITS
+        +get_quantum_random_nonce(num_bits) int
+        +get_entangled_q_RNG_bit(num_nodes) int
+        +generate_verifiable_nonce(node_id, num_nodes, num_bits) int
+        +extract_parameters_from_block(block) Dict
+        +create_block_quantum_state(block) Statevector
+        +calculate_fidelity(statevector1, statevector2) float
     }
     
+    %% Relationships
     Blockchain *-- Block : contains
     Block *-- Transaction : contains
-    QuantumConsensusNode *-- Blockchain : has
-    QuantumConsensusNode *-- QuantumRandomNumberGenerator : uses
-    QuantumConsensusNode *-- QuantumHashFunction : uses
-    QuantumConsensusNode *-- QuantumTeleportation : uses
-    QuantumConsensusNode *-- FidelityChecker : uses
-    QuantumConsensusProtocol *-- QuantumConsensusNode : manages
+    Node -- Blockchain : references
+    Network -- Node : manages
+    Network -- Blockchain : manages
+    Node ..> QuantumUtils : uses
+    Block ..> QuantumUtils : uses

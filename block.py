@@ -59,10 +59,13 @@ class Block:
 
     def __str__(self):
         tx_ids = [tx.id[:6] for tx in self.transactions]
+        # Display full hashes for debugging
+        prev_hash_display = self.previous_hash[:8] if len(self.previous_hash) > 8 else self.previous_hash
+        hash_display = self.hash[:8] if self.hash and len(self.hash) > 8 else self.hash
         return (f"Block(Index: {self.index}, Time: {self.timestamp:.0f}, "
                 f"Creator: {self.creator_id}, Nonce: {self.nonce}, "
                 f"Tx: {len(self.transactions)} {tx_ids}, "
-                f"PrevHash: {self.previous_hash[:8]}, Hash: {self.hash[:8]})")
+                f"PrevHash: {prev_hash_display}, Hash: {hash_display})")
 
     def __repr__(self):
         return str(self)
