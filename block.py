@@ -22,9 +22,14 @@ class Block:
             if isinstance(tx_data, Transaction):
                 loaded_tx.append(tx_data)
             elif isinstance(tx_data, dict):
-                tx = Transaction(tx_data['sender'], tx_data['receiver'], tx_data['amount'])
-                tx.timestamp = tx_data.get('timestamp', time.time())
-                tx.id = tx_data.get('id', tx.id)
+                # Create transaction with all fields properly loaded
+                tx = Transaction(
+                    sender=tx_data['sender'], 
+                    receiver=tx_data['receiver'], 
+                    amount=tx_data['amount'],
+                    id=tx_data.get('id'),  # Pass ID directly to constructor
+                    timestamp=tx_data.get('timestamp')  # Pass timestamp directly to constructor
+                )
                 loaded_tx.append(tx)
             else:
                 raise TypeError(f"Unsupported transaction data type: {type(tx_data)}")

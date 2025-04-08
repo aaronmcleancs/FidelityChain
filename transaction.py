@@ -3,12 +3,12 @@ import uuid
 import hashlib
 
 class Transaction:
-    def __init__(self, sender, receiver, amount):
+    def __init__(self, sender, receiver, amount, id=None, timestamp=None):
         self.sender = sender
         self.receiver = receiver
         self.amount = float(amount)
-        self.timestamp = time.time()
-        self.id = str(uuid.uuid4())
+        self.timestamp = timestamp if timestamp is not None else time.time()
+        self.id = id if id is not None else str(uuid.uuid4())
 
     def to_dict(self):
         return {

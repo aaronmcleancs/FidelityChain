@@ -8,7 +8,14 @@ class Blockchain:
         self.pending_transactions = []
 
     def create_genesis_block(self):
-        genesis_tx = Transaction("genesis", "genesis", 0)
+        # Create a deterministic genesis transaction with fixed id and timestamp
+        genesis_tx = Transaction(
+            sender="genesis", 
+            receiver="genesis", 
+            amount=0,
+            id="GENESIS_TRANSACTION_FIXED_ID",
+            timestamp=1678886400
+        )
         return Block(index=0,
                      transactions=[genesis_tx.to_dict()],
                      timestamp=1678886400,
@@ -16,6 +23,9 @@ class Blockchain:
                      creator_id="genesis_node",
                      nonce=0)
     def get_latest_block(self):
+        if not self.chain:
+            print("ERROR: Blockchain chain is empty! Recreating genesis block.")
+            self.chain = [self.create_genesis_block()]
         return self.chain[-1]
 
     def add_transaction(self, transaction):
